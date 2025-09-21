@@ -1,0 +1,213 @@
+:root {
+  --color-background-main: #3a3a3a;
+  --color-text-main: #fcfcfc;
+  --color-text-secondary: #a4a4a4;
+  --color-button-bg: #b6b6b6;
+  --color-button-hover: #d3d3d3;
+  --color-created-bg: #e0e0e0;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* Container principal */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  max-width: 90%;
+  padding-top: 6%;
+  padding-bottom: 6%;
+  max-height: 800px;
+  margin: 50px auto;
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--color-background-main);
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 5px 15px var(--color-shadow);
+}
+
+/* Título */
+.app-title {
+  font-size: clamp(32px, 8vw, 81px);
+
+  margin: 0;
+  margin-bottom: 30px;
+  color: var(--color-text-main);
+}
+
+/* PESO */
+.peso-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+}
+
+.peso-label {
+  color: var(--color-text-secondary);
+  font-weight: bold;
+}
+
+.peso-value {
+  font-size: clamp(32px, 6vw, 66px);
+  color: var(--color-text-main);
+  font-weight: bold;
+}
+
+/* VALOR */
+.valor-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 30px;
+  font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+}
+
+.valor-label {
+  color: var(--color-text-secondary);
+  font-weight: bold;
+}
+
+.valor-value {
+  font-size: clamp(32px, 6vw, 66px);
+  color: var(--color-text-main);
+  font-weight: bold;
+}
+
+/* Botão de criar */
+
+
+.btn-create {
+  padding: 20px 30px;
+  background-color: var(--color-button-bg);
+  color: var(--color-text-main);
+  border: none;
+  border-radius: 55px;
+  cursor: pointer;
+  font-size: clamp(16px, 2vw, 23px);
+  transition: 0.2s;
+}
+
+.btn-create:hover {
+  background-color: var(--color-button-hover);
+}
+
+/* Entry criada */
+.created-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--color-created-bg);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.created-container h2 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: var(--color-text-main);
+}
+
+.created-container p {
+  margin: 3px 0;
+}
+
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  /* escurece o fundo */
+  backdrop-filter: blur(10px);
+  /* desfoque do fundo */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  /* atrás do container */
+}
+
+.container {
+  display: flex;
+  background-color: var(--background, #0000009b);
+    padding: 5%;
+    margin: 5%;
+  padding-top: 6%;
+  padding-bottom: 6%;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+
+.container h2 {
+  font-size: clamp(16px, 2vw, 24px);
+  margin-bottom: 0;
+  color: var(--color-text-main);
+}
+
+.container img {
+    width: 300px;
+    height: 300px;
+}
+
+.payment-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  gap: 25px;
+}
+
+.payment-buttons button {
+  width: 164px;
+    padding: 15px 25px;
+  font-size: clamp(18px, 2.5vw, 28px);
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background-color: #7b7b7b;
+    color: #fff;
+    transition: 0.2s;
+
+}
+
+.payment-buttons button:hover {
+  background-color: #d3d3d3;
+  color: #000;
+}
+
+.status-message {
+  margin: 0;
+  font-size: clamp(20px, 4vw, 38px);
+  margin-bottom: 20px;
+  white-space: pre-line; /* interpreta \n como quebra de linha */
+}
+
+
+.btn-cancel {
+  all: unset; /* remove estilos padrões */
+  margin-top: 14%;
+  color: var(--color-text-secondary);
+  font-size: clamp(20px, 3vw, 28px);
+  cursor: pointer;
+
+    font-family: monospace;
+  /* underline azul */
+  text-decoration: underline;
+  text-decoration-color: var(--color-text-secondary); /* garante a mesma cor */
+  text-underline-offset: 3px; /* dá um espacinho elegante */
+}
+
+
+@media (max-width: 600px) {
+  .payment-buttons {
+    flex-direction: column; /* empilha verticalmente */
+    align-items: center;
+  }
+}
