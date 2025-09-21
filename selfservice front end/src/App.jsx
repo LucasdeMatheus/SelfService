@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
-  const [weight] = useState(2.95);
+  const [weight, setWeight] = useState(null);
   const [calculated, setCalculated] = useState(null);
   const [created, setCreated] = useState(null);
   const [qrCodeImg, setQrCodeImg] = useState(null);
@@ -11,24 +11,49 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [paid, setPaid] = useState(false);
-  const [countdown, setCountdown] = useState(5); // cronômetro de 5 segundos
+  const [countdown, setCountdown] = useState(5);
+
+  const wsRef = useRef(null);
+  const PRICE_PER_KG = 10.0; // exemplo: R$10 por kg
 
   useEffect(() => {
-    const fetchCalculated = async () => {
-      try {
-        const response = await fetch('http://localhost:8080/calculate-weight', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ weight })
-        });
-        const data = await response.json();
-        setCalculated(data);
-      } catch (error) {
-        console.error('Erro ao calcular peso:', error);
-      }
+    const connect = () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
+
+      wsRef.current = new WebSocket('ws://localhost:8080/ws/weight');
+
+      wsRef.current.onopen = () => console.log('Conectado ao WebSocket');
+      wsRef.current.onclose = () => {
+        console.log('WebSocket desconectado, reconectando em 3s...');
+        setTimeout(connect, 3000);
+      };
+      wsRef.current.onerror = (err) => console.error('Erro no WebSocket', err);
+
+      wsRef.current.onmessage = (event) => {
+        try {
+          console.log('Mensagem recebida do WebSocket:', event.data);
+
+          const data = JSON.parse(event.data); // parse JSON
+          const pesoRecebido = parseFloat(data.weight); // pega o peso
+          const valor = parseFloat(data.value);        // pega o valor
+
+          if (!isNaN(pesoRecebido) && !isNaN(valor)) {
+            setWeight(pesoRecebido);
+            setCalculated({ weight: pesoRecebido, value: valor });
+          }
+        } catch (err) {
+          console.error('Erro ao processar peso:', err);
+        }
+      };
+
     };
-    fetchCalculated();
-  }, [weight]);
+
+    connect();
+
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, []);
 
   const handleShowPayment = () => {
     setShowPaymentOverlay(true);
@@ -88,12 +113,12 @@ function App() {
         setStatusMessage('Aguardando pagamento PIX...');
         setLoading(false);
 
-        setTimeout(() => startCountdown(), 5000); // simula confirmação de pagamento
+        setTimeout(() => startCountdown(), 5000);
       } else {
         setQrCodeImg(null);
         setLoading(false);
         setStatusMessage(`Pagamento via ${method} selecionado.\nFaça o pagamento na maquininha.`);
-        setTimeout(() => startCountdown(), 5000); // simula confirmação de pagamento
+        setTimeout(() => startCountdown(), 5000);
       }
     } catch (error) {
       console.error('Erro ao criar entry ou gerar QR Code:', error);
@@ -102,16 +127,15 @@ function App() {
     }
   };
 
-  // Função para iniciar cronômetro de 5 segundos
   const startCountdown = () => {
     setPaid(true);
     setCountdown(5);
-      setStatusMessage('Pagamento recebido! \n Obrigado pela preferencia!\n:)');
+    setStatusMessage('Pagamento recebido! \n Obrigado pela preferência!\n:)');
     const interval = setInterval(() => {
       setCountdown(prev => {
         if (prev === 1) {
           clearInterval(interval);
-          handleCancel(); // fecha overlay automaticamente
+          handleCancel();
           return 0;
         }
         return prev - 1;
@@ -125,7 +149,7 @@ function App() {
 
       <div className="peso-container">
         <span className="peso-label">PESO:</span>
-        <span className="peso-value">{weight} kg</span>
+        <span className="peso-value">{weight !== null ? weight.toFixed(2) : '--'} kg</span>
       </div>
 
       {calculated && (
@@ -176,7 +200,6 @@ function App() {
         </div>
       )}
 
-      {/* Overlay de pagamento confirmado com cronômetro */}
       {paid && (
         <div className="overlay">
           <div className="container">
