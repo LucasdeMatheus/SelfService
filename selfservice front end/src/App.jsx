@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
+import WebSocketComponent from './WebSocketComponent';
 import './App.css';
+import { printReceipt } from './Receipt';
 
 function App() {
   const [weight, setWeight] = useState(null);
@@ -12,48 +14,23 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [paid, setPaid] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const [connected, setConnected] = useState(false);
 
-  const wsRef = useRef(null);
-  const PRICE_PER_KG = 10.0; // exemplo: R$10 por kg
+  // Recebe dados do WebSocket
+  const handleWebSocketMessage = (data) => {
+    try {
+      const parsed = JSON.parse(data);
+      const pesoRecebido = parseFloat(parsed.weight);
+      const valor = parseFloat(parsed.value);
 
-  useEffect(() => {
-    const connect = () => {
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) return;
-
-      wsRef.current = new WebSocket('ws://localhost:8080/ws/weight');
-
-      wsRef.current.onopen = () => console.log('Conectado ao WebSocket');
-      wsRef.current.onclose = () => {
-        console.log('WebSocket desconectado, reconectando em 3s...');
-        setTimeout(connect, 3000);
-      };
-      wsRef.current.onerror = (err) => console.error('Erro no WebSocket', err);
-
-      wsRef.current.onmessage = (event) => {
-        try {
-          console.log('Mensagem recebida do WebSocket:', event.data);
-
-          const data = JSON.parse(event.data); // parse JSON
-          const pesoRecebido = parseFloat(data.weight); // pega o peso
-          const valor = parseFloat(data.value);        // pega o valor
-
-          if (!isNaN(pesoRecebido) && !isNaN(valor)) {
-            setWeight(pesoRecebido);
-            setCalculated({ weight: pesoRecebido, value: valor });
-          }
-        } catch (err) {
-          console.error('Erro ao processar peso:', err);
-        }
-      };
-
-    };
-
-    connect();
-
-    return () => {
-      if (wsRef.current) wsRef.current.close();
-    };
-  }, []);
+      if (!isNaN(pesoRecebido) && !isNaN(valor)) {
+        setWeight(pesoRecebido);
+        setCalculated({ weight: pesoRecebido, value: valor });
+      }
+    } catch (err) {
+      console.error('Erro ao processar mensagem do WebSocket:', err);
+    }
+  };
 
   const handleShowPayment = () => {
     setShowPaymentOverlay(true);
@@ -70,22 +47,46 @@ function App() {
     setCountdown(5);
   };
 
+  const startCountdown = () => {
+    setPaid(true);
+    setCountdown(5);
+    setStatusMessage('Pagamento recebido! \nObrigado pela preferência!');
+
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev === 1) {
+          clearInterval(interval);
+          handleCancel();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const handlePaymentSelect = async (method) => {
+    if (!calculated) return;
+
     setPaymentMethod(method);
     setShowPaymentOverlay(false);
     setStatusMessage('Processando pagamento...');
     setLoading(true);
 
     try {
+      // Cria entry do pedido
       const response = await fetch('http://localhost:8080/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight })
       });
+
       const data = await response.json();
       setCreated(data);
 
-      if (method === 'PIX' && calculated) {
+      // Chama o recibo imediatamente
+      printReceipt(calculated.weight, calculated.value, data.id);
+
+      if (method === 'PIX') {
         const qrBody = {
           type: 'pix',
           JsonNode: {
@@ -127,24 +128,15 @@ function App() {
     }
   };
 
-  const startCountdown = () => {
-    setPaid(true);
-    setCountdown(5);
-    setStatusMessage('Pagamento recebido! \n Obrigado pela preferência!\n:)');
-    const interval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev === 1) {
-          clearInterval(interval);
-          handleCancel();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
   return (
     <div className="app-container">
+      {!connected && (
+        <WebSocketComponent
+          onMessage={handleWebSocketMessage}
+          onStatusChange={setConnected}
+        />
+      )}
+
       <h1 className="app-title">Self Service</h1>
 
       <div className="peso-container">

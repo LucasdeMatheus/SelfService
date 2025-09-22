@@ -15,14 +15,7 @@ public class WeightEntryService {
 
     @Autowired
     private WeightEntryRepository weightEntryRepository;
-
-
-    public ResponseEntity<WeightEntryDTO> calculateWeight(WeightDTO weightDTO) {
-        return ResponseEntity.ok(new WeightEntryDTO(weightDTO.weight(),weightDTO.weight() * 10));
-    }
-
-
-
+    
     public ResponseEntity<WeightEntry> create(WeightDTO weightDTO) {
         WeightEntry weightEntry = weightEntryRepository.save(new WeightEntry(weightDTO.weight(),weightDTO.weight() * 10, LocalDateTime.now()));
 

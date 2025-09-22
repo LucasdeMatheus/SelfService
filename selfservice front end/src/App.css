@@ -204,6 +204,15 @@
   text-underline-offset: 3px; /* dá um espacinho elegante */
 }
 
+.btn-conect{
+  font-size: clamp(20px, 3vw, 28px);
+  cursor: pointer;
+  
+    font-family: monospace;
+  /* underline azul */
+  text-decoration-color: var(--color-text-main); /* garante a mesma cor */
+  text-underline-offset: 3px; /* dá um espacinho elegante */
+}
 
 @media (max-width: 600px) {
   .payment-buttons {
